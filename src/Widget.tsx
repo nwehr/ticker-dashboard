@@ -31,10 +31,7 @@ const Widget = (props: WidgetProps) => {
         const end = moment().unix()
         const start = moment().subtract(6, 'months').unix()
 
-        console.log(end - start)
-
         const resp = await axios.get(`https://finnhub.io/api/v1/stock/candle?symbol=${props.symbol}&token=${token}&resolution=D&from=${start}&to=${end}`)
-        // const resp = await axios.get(`https://finnhub.io/api/v1/stock/candle?symbol=${props.symbol}&token=${token}&resolution=1&from=1631022248&to=1631627048`)
 
         const data = []
 
@@ -48,15 +45,23 @@ const Widget = (props: WidgetProps) => {
     useEffect(() => {
         const token = localStorage.getItem("finnhub_api_token")!
         getProfile(token)
-        // getQuote(token)
-        getCandles(token)
 
-        clearInterval((window as any).quoteInterval);
-        (window as any).quoteInterval = setInterval(() => {
+        getQuote(token)
+
+        clearInterval((window as any)["quote_" + props.symbol]);
+        (window as any)["quote_" + props.symbol] = setInterval(() => {
             getQuote(token)
         }, 5000)
 
-    }, [getProfile, getQuote, getCandles])
+        getCandles(token)
+
+        clearInterval((window as any)["candles_" + props.symbol]);
+        (window as any)["candles_" + props.symbol] = setInterval(() => {
+            getCandles(token)
+        }, 5000)
+
+
+    }, [props.symbol, getProfile, getQuote, getCandles])
 
     return <div className="widget">
         <div className="grid-container">

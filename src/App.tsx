@@ -11,7 +11,7 @@ const GetToken = () => {
 	const onSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		localStorage.setItem("finnhub_api_token", token)
-		window.location.href = "/"
+		window.location.reload()
 	}
 
 	return <div>
