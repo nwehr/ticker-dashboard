@@ -5,8 +5,6 @@ import React, { useCallback, useEffect, useState } from "react"
 // @ts-ignore
 import { XYPlot, LineSeries } from 'react-vis'
 
-import "./Widget.css"
-
 export interface WidgetProps {
     symbol: string
 }
@@ -39,8 +37,6 @@ const Widget = (props: WidgetProps) => {
         // const resp = await axios.get(`https://finnhub.io/api/v1/stock/candle?symbol=${props.symbol}&token=${token}&resolution=1&from=1631022248&to=1631627048`)
 
         const data = []
-
-        console.log(resp.data)
 
         for (let i = 0; i < resp.data.c.length; i++) {
             data.push({ x: i + 1, y: resp.data.c[i] })

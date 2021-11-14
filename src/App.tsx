@@ -1,8 +1,6 @@
 import React, { ChangeEvent, FormEvent, useState } from 'react';
 import Widget from './Widget';
 
-import './App.css';
-
 const GetToken = () => {
 	const [token, setToken] = useState("")
 
