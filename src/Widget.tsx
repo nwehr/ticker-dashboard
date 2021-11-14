@@ -45,21 +45,18 @@ const Widget = (props: WidgetProps) => {
     useEffect(() => {
         const token = localStorage.getItem("finnhub_api_token")!
         getProfile(token)
-
         getQuote(token)
+        getCandles(token)
 
         clearInterval((window as any)["quote_" + props.symbol]);
         (window as any)["quote_" + props.symbol] = setInterval(() => {
             getQuote(token)
-        }, 5000)
-
-        getCandles(token)
+        }, 60000)
 
         clearInterval((window as any)["candles_" + props.symbol]);
         (window as any)["candles_" + props.symbol] = setInterval(() => {
             getCandles(token)
-        }, 5000)
-
+        }, 60000)
 
     }, [props.symbol, getProfile, getQuote, getCandles])
 
