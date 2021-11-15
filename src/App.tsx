@@ -1,27 +1,5 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react';
-import Widget from './Widget';
-
-const GetToken = () => {
-	const [token, setToken] = useState("")
-
-	const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-		setToken(e.currentTarget.value)
-	}
-
-	const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		localStorage.setItem("finnhub_api_token", token)
-		window.location.reload()
-	}
-
-	return <div>
-		<form onSubmit={onSubmit} className="token">
-			<label><a href="https://finnhub.io/">Finnhub</a> API Token</label>
-			<div><input type="text" onChange={onChange} /></div>
-			<div><input type="submit" value="Submit" /></div>
-		</form>
-	</div>
-}
+import GetToken from "./GetToken"
+import Widget from "./Widget"
 
 const App = () => {
 	if (!localStorage.getItem("finnhub_api_token")) {
@@ -42,4 +20,4 @@ const App = () => {
 	</div>
 }
 
-export default App;
+export default App
