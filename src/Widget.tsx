@@ -1,7 +1,9 @@
-import { useFinnhub } from "./hooks/useFinnhub"
+import { useEffect, useState } from 'react'
 
 // @ts-ignore
 import { XYPlot, LineSeries } from 'react-vis'
+
+import { useFinnhub } from "./hooks/useFinnhub"
 
 export interface WidgetProps {
     symbol: string
@@ -9,8 +11,36 @@ export interface WidgetProps {
 
 const Widget = (props: WidgetProps) => {
     const { name, current, change, chartData } = useFinnhub(props.symbol)
+    const [lastQuote, setLastQuote] = useState(current)
+    const [lastQuoteChange, setLastQuoteChange] = useState(0)
 
-    return <div className="widget">
+    const [className, setClassName] = useState("widget")
+
+    useEffect(() => {
+        if (current !== lastQuote) {
+            setLastQuoteChange(current - lastQuote)
+        }
+
+        setLastQuote(current)
+    }, [current, lastQuote])
+
+    useEffect(() => {
+        if (lastQuoteChange < 0) {
+            setClassName("widget blink-red")
+        } else {
+            setClassName("widget blink-green")
+        }
+
+        const timeout = setTimeout(() => {
+            setClassName("widget")
+        }, 1000)
+
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [lastQuoteChange])
+
+    return <div className={className}>
         <div className="grid-container">
             <div className="profile">
                 <h3>{props.symbol}</h3>

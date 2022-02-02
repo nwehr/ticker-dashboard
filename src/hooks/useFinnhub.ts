@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
-import axios from "axios"
-import moment from "moment"
+import moment, { now } from "moment"
+
+import { pushReqest } from "../requestQueue"
+
+const quoteIntervalMS = 30000
+const candleIntervalMS = 300000
 
 export const useFinnhub = (symbol: string) => {
     const [name, setName] = useState("")
@@ -8,55 +12,81 @@ export const useFinnhub = (symbol: string) => {
     const [change, setChange] = useState(0.0)
     const [chartData, setChartData] = useState<any[]>([])
 
+    const [quoteUpdatedTime, setQuoteUpdatedTime] = useState<number>(0)
+    const [chartUpdatedTime, setChartUpdatedTime] = useState<number>(0)
 
     const getProfile = useCallback(async (token: string) => {
-        const resp = await axios.get(`https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${token}`)
-        setName(resp.data.name)
+        const url = `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${token}`
+
+        pushReqest(url, (data: any) => {
+            setName(data.name)
+        })
     }, [symbol])
 
     const getQuote = useCallback(async (token: string) => {
-        const resp = await axios.get(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${token}`)
-        setCurrent(resp.data.c)
-        setChange(resp.data.c - resp.data.o)
+        const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${token}`
+
+        pushReqest(url, (data: any) => {
+            const current = data.c
+            const change = data.c - data.o
+            const updated = now()
+
+            setCurrent(current)
+            setChange(change)
+            setQuoteUpdatedTime(updated)
+        })
     }, [symbol])
 
     const getCandles = useCallback(async (token: string) => {
         const end = moment().unix()
         const start = moment().subtract(6, 'months').unix()
 
-        const resp = await axios.get(`https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&token=${token}&resolution=D&from=${start}&to=${end}`)
+        const url = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&token=${token}&resolution=D&from=${start}&to=${end}`
 
-        const data = []
+        pushReqest(url, (data: any) => {
+            const chartData = []
 
-        for (let i = 0; i < resp.data.c.length; i++) {
-            data.push({ x: i + 1, y: resp.data.c[i] })
-        }
+            if (data.c) {
+                for (let i = 0; i < data.c.length; i++) {
+                    chartData.push({ x: i + 1, y: data.c[i] })
+                }
+            }
 
-        setChartData(data)
+            setChartData(chartData)
+            setChartUpdatedTime(now())
+        })
     }, [symbol])
 
     useEffect(() => {
+        console.log("dependencies:", [symbol, getProfile, getQuote, getCandles])
+
         const token = localStorage.getItem("finnhub_api_token")!
+
         getProfile(token)
         getQuote(token)
         getCandles(token)
 
-        clearInterval((window as any)["quote_" + symbol]);
-        (window as any)["quote_" + symbol] = setInterval(() => {
+        const quoteInterval = setInterval(() => {
             getQuote(token)
-        }, 60000)
+        }, quoteIntervalMS)
 
-        clearInterval((window as any)["candles_" + symbol]);
-        (window as any)["candles_" + symbol] = setInterval(() => {
+        const candleInterval = setInterval(() => {
             getCandles(token)
-        }, 90000)
+        }, candleIntervalMS)
 
+        return () => {
+            clearInterval(quoteInterval)
+            clearInterval(candleInterval)
+        }
     }, [symbol, getProfile, getQuote, getCandles])
+
 
     return {
         name
         , current
         , change
         , chartData
+        , quoteUpdatedTime
+        , chartUpdatedTime
     }
 }
