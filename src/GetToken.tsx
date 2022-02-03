@@ -13,7 +13,7 @@ const GetToken = () => {
 		window.location.reload()
 	}, [token])
 
-	return <div>
+	return <div className="get-token">
 		<form onSubmit={onSubmit} className="token">
 			<label><a href="https://finnhub.io/">Finnhub</a> API Token</label>
 			<div><input type="text" onChange={onChange} /></div>
